@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: ['*']
+    tags: ['*']
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+      - name: Cache node_modules
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: modules-cache-v1-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+
+      - run: yarn install
+      - run: yarn test
+      - run: yarn build
+
+      - name: save build artifacts
+        uses: actions/upload-artifact@v2
+        if: "!failure()"
+        with:
+          retention-days: 1
+          name: dist
+          path: |
+            dist/

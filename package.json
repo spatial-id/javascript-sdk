@@ -1,0 +1,41 @@
+{
+  "name": "@spatial-id/javascript-sdk",
+  "version": "0.0.0",
+  "description": "The reference implementation of the Spatial ID Object Model Specification for JavaScript or TypeScript consumers.",
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "README.md",
+    "LICENSE",
+    "package.json",
+    "dist/**/*",
+    "dist/*"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spatial-id/javascript-sdk.git"
+  },
+  "keywords": [],
+  "author": "Geolonia (https://geolonia.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/spatial-id/javascript-sdk/issues"
+  },
+  "homepage": "https://github.com/spatial-id/javascript-sdk#readme",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^22.0.0",
+    "@rollup/plugin-node-resolve": "^13.2.1",
+    "@types/geojson": "^7946.0.8",
+    "@types/jest": "^27.4.1",
+    "jest": "^27.5.1",
+    "rollup": "^2.70.2",
+    "rollup-plugin-typescript2": "^0.31.2",
+    "ts-jest": "^27.1.4",
+    "typescript": "^4.6.3"
+  }
+}
