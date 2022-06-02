@@ -12,6 +12,7 @@ export declare function getParent(tile: ZFXYTile): ZFXYTile;
 export declare function getChildren(tile?: ZFXYTile): ZFXYTile[];
 export declare function parseZFXYString(str: string): ZFXYTile | undefined;
 export declare function getLngLat(tile: ZFXYTile): LngLat;
+export declare function getCenterLngLat(tile: ZFXYTile): LngLat;
 /** Returns the floor of the voxel, in meters */
 export declare function getFloor(tile: ZFXYTile): number;
 export interface CalculateZFXYInput {

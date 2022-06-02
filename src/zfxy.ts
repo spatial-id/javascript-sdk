@@ -50,6 +50,13 @@ export function getLngLat(tile: ZFXYTile): LngLat {
   };
 }
 
+export function getCenterLngLat(tile: ZFXYTile): LngLat {
+  const x = tile.x * 2 + 1,
+        y = tile.y * 2 + 1,
+        z = tile.z + 1;
+  return getLngLat({x, y, z, f: 0});
+}
+
 /** Returns the floor of the voxel, in meters */
 export function getFloor(tile: ZFXYTile): number {
   return tile.f * (2**ZFXY_1M_ZOOM_BASE) / (2**tile.z)

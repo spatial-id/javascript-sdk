@@ -1,5 +1,5 @@
 import { LngLat, LngLatWithAltitude } from "./types";
-import { calculateZFXY, getChildren, getFloor, getLngLat, getParent, isZFXYTile, parseZFXYString, ZFXYTile, zfxyWraparound } from "./zfxy";
+import { calculateZFXY, getCenterLngLat, getChildren, getFloor, getParent, isZFXYTile, parseZFXYString, ZFXYTile, zfxyWraparound } from "./zfxy";
 import { generateTilehash, parseZFXYTilehash } from "./zfxy_tilehash";
 
 const DEFAULT_ZOOM = 25 as const;
@@ -90,7 +90,7 @@ export class Space {
   }
 
   private _regenerateAttributesFromZFXY() {
-    this.center = getLngLat(this.zfxy);
+    this.center = getCenterLngLat(this.zfxy);
     this.alt = getFloor(this.zfxy);
     this.zoom = this.zfxy.z;
     this.tilehash = generateTilehash(this.zfxy);

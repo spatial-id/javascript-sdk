@@ -79,6 +79,10 @@ function getLngLat(tile) {
         lat: rad2deg * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))),
     };
 }
+function getCenterLngLat(tile) {
+    var x = tile.x * 2 + 1, y = tile.y * 2 + 1, z = tile.z + 1;
+    return getLngLat({ x: x, y: y, z: z, f: 0 });
+}
 /** Returns the floor of the voxel, in meters */
 function getFloor(tile) {
     return tile.f * (Math.pow(2, ZFXY_1M_ZOOM_BASE)) / (Math.pow(2, tile.z));
@@ -242,7 +246,7 @@ var Space = /** @class */ (function () {
         return getChildren(this.zfxy).map(function (tile) { return new Space(tile); });
     };
     Space.prototype._regenerateAttributesFromZFXY = function () {
-        this.center = getLngLat(this.zfxy);
+        this.center = getCenterLngLat(this.zfxy);
         this.alt = getFloor(this.zfxy);
         this.zoom = this.zfxy.z;
         this.tilehash = generateTilehash(this.zfxy);
