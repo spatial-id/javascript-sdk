@@ -60,5 +60,6 @@ typings/
 # next.js build output
 .next
 
-dist
+# include compiled output for now so you can npm install directly from git
+# dist
 node_modules
