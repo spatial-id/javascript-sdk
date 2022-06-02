@@ -1,15 +1,17 @@
 import { LngLat, LngLatWithAltitude } from "./types";
 import { calculateZFXY, getChildren, getFloor, getLngLat, getParent, isZFXYTile, parseZFXYString, ZFXYTile, zfxyWraparound } from "./zfxy";
-import { parseZFXYTilehash } from "./zfxy_tilehash";
+import { generateTilehash, parseZFXYTilehash } from "./zfxy_tilehash";
 
 const DEFAULT_ZOOM = 25 as const;
 
 export class Space {
-  _position: LngLat
-  _alt: number
-  _zoom: number
+  center: LngLat
+  alt: number
+  zoom: number
 
-  _zfxy: ZFXYTile
+  zfxy: ZFXYTile
+  tilehash: string
+
   /**
    * Create a new Space
    *
@@ -17,31 +19,28 @@ export class Space {
    * @param zoom Optional. Defaults to 25 when `input` is LngLatWithAltitude. Ignored when ZXFY or tilehash is provided.
    */
   constructor(input: LngLatWithAltitude | ZFXYTile | string, zoom?: number) {
-    let lngLat: LngLatWithAltitude;
     if (typeof input === 'string') {
       // parse string
       let zfxy = parseZFXYString(input) || parseZFXYTilehash(input);
       if (zfxy) {
-        this._zfxy = zfxy;
+        this.zfxy = zfxy;
         this._regenerateAttributesFromZFXY();
       } else {
         throw new Error(`parse ZFXY failed with input: ${input}`);
       }
       return;
     } else if (isZFXYTile(input)) {
-      this._zfxy = input;
+      this.zfxy = input;
       this._regenerateAttributesFromZFXY();
       return;
+    } else {
+      this.zfxy = calculateZFXY({
+        ...input,
+        zoom: (typeof zoom !== 'undefined') ? zoom : DEFAULT_ZOOM,
+      });
     }
 
-    lngLat = input;
-    this._zoom = zoom;
-    this._position = {lng: lngLat.lng, lat: lngLat.lat};
-    this._alt = lngLat.alt || 0;
-    this._zfxy = calculateZFXY({
-      ...lngLat,
-      zoom: (typeof zoom !== 'undefined') ? zoom : DEFAULT_ZOOM,
-    });
+    this._regenerateAttributesFromZFXY();
   }
 
   /* - PUBLIC API - */
@@ -71,28 +70,29 @@ export class Space {
   }
 
   move(by: Partial<Omit<ZFXYTile, 'z'>>) {
-    const newSpace = new Space(this._zfxy);
-    newSpace._zfxy = zfxyWraparound({
-      z: newSpace._zfxy.z,
-      f: newSpace._zfxy.f + (by.f || 0),
-      x: newSpace._zfxy.x + (by.x || 0),
-      y: newSpace._zfxy.y + (by.y || 0),
+    const newSpace = new Space(this.zfxy);
+    newSpace.zfxy = zfxyWraparound({
+      z: newSpace.zfxy.z,
+      f: newSpace.zfxy.f + (by.f || 0),
+      x: newSpace.zfxy.x + (by.x || 0),
+      y: newSpace.zfxy.y + (by.y || 0),
     });
     newSpace._regenerateAttributesFromZFXY();
     return newSpace;
   }
 
   parent() {
-    return new Space(getParent(this._zfxy));
+    return new Space(getParent(this.zfxy));
   }
 
   children() {
-    return getChildren(this._zfxy).map((tile) => new Space(tile));
+    return getChildren(this.zfxy).map((tile) => new Space(tile));
   }
 
   private _regenerateAttributesFromZFXY() {
-    this._position = getLngLat(this._zfxy);
-    this._alt = getFloor(this._zfxy);
-    this._zoom = this._zfxy.z;
+    this.center = getLngLat(this.zfxy);
+    this.alt = getFloor(this.zfxy);
+    this.zoom = this.zfxy.z;
+    this.tilehash = generateTilehash(this.zfxy);
   }
 }
