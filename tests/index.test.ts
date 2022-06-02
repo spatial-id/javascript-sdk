@@ -1,4 +1,4 @@
-import Space from '../src/index';
+import { Space } from '../src/index';
 
 describe('Space', () => {
   it('works', () => {

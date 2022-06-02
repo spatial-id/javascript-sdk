@@ -4,7 +4,7 @@ import { parseZFXYTilehash } from "./zfxy_tilehash";
 
 const DEFAULT_ZOOM = 25 as const;
 
-export default class Space {
+export class Space {
   _position: LngLat
   _alt: number
   _zoom: number
