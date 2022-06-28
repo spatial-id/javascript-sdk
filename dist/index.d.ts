@@ -5,6 +5,7 @@ export declare class Space {
     alt: number;
     zoom: number;
     zfxy: ZFXYTile;
+    zfxyStr: string;
     tilehash: string;
     /**
      * Create a new Space

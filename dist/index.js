@@ -254,6 +254,7 @@ var Space = /** @class */ (function () {
         this.alt = getFloor(this.zfxy);
         this.zoom = this.zfxy.z;
         this.tilehash = generateTilehash(this.zfxy);
+        this.zfxyStr = "/".concat(this.zfxy.z, "/").concat(this.zfxy.f, "/").concat(this.zfxy.x, "/").concat(this.zfxy.y);
     };
     return Space;
 }());
