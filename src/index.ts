@@ -10,6 +10,8 @@ export class Space {
   zoom: number
 
   zfxy: ZFXYTile
+
+  zfxyStr: string
   tilehash: string
 
   /**
@@ -94,5 +96,6 @@ export class Space {
     this.alt = getFloor(this.zfxy);
     this.zoom = this.zfxy.z;
     this.tilehash = generateTilehash(this.zfxy);
+    this.zfxyStr = `/${this.zfxy.z}/${this.zfxy.f}/${this.zfxy.x}/${this.zfxy.y}`;
   }
 }
