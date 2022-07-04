@@ -1,5 +1,6 @@
 import { LngLat, LngLatWithAltitude } from "./types";
 import { ZFXYTile } from "./zfxy";
+import type { Polygon } from "geojson";
 export declare class Space {
     center: LngLat;
     alt: number;
@@ -23,5 +24,7 @@ export declare class Space {
     move(by: Partial<Omit<ZFXYTile, 'z'>>): Space;
     parent(): Space;
     children(): Space[];
+    /** Calculates the polygon of this Space and returns a 2D GeoJSON Polygon. */
+    toGeoJSON(): Polygon;
     private _regenerateAttributesFromZFXY;
 }

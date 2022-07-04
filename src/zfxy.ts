@@ -42,6 +42,7 @@ export function parseZFXYString(str: string): ZFXYTile | undefined {
   };
 }
 
+/** Returns the lng,lat of the northwest corner of the provided tile */
 export function getLngLat(tile: ZFXYTile): LngLat {
   const n = Math.PI - 2 * Math.PI * tile.y / Math.pow(2, tile.z);
   return {
@@ -55,6 +56,12 @@ export function getCenterLngLat(tile: ZFXYTile): LngLat {
         y = tile.y * 2 + 1,
         z = tile.z + 1;
   return getLngLat({x, y, z, f: 0});
+}
+
+export function getBBox(tile: ZFXYTile): [LngLat, LngLat] {
+  const nw = getLngLat(tile),
+        se = getLngLat({...tile, y: tile.y + 1, x: tile.x + 1});
+  return [ nw, se ];
 }
 
 /** Returns the floor of the voxel, in meters */

@@ -1,6 +1,7 @@
 import { LngLat, LngLatWithAltitude } from "./types";
-import { calculateZFXY, getCenterLngLat, getChildren, getFloor, getParent, isZFXYTile, parseZFXYString, ZFXYTile, zfxyWraparound } from "./zfxy";
+import { calculateZFXY, getBBox, getCenterLngLat, getChildren, getFloor, getParent, isZFXYTile, parseZFXYString, ZFXYTile, zfxyWraparound } from "./zfxy";
 import { generateTilehash, parseZFXYTilehash } from "./zfxy_tilehash";
+import type { Polygon } from "geojson";
 
 const DEFAULT_ZOOM = 25 as const;
 
@@ -89,6 +90,23 @@ export class Space {
 
   children() {
     return getChildren(this.zfxy).map((tile) => new Space(tile));
+  }
+
+  /** Calculates the polygon of this Space and returns a 2D GeoJSON Polygon. */
+  toGeoJSON(): Polygon {
+    const [nw, se] = getBBox(this.zfxy);
+    return {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [nw.lng, nw.lat],
+          [nw.lng, se.lat],
+          [se.lng, se.lat],
+          [se.lng, nw.lat],
+          [nw.lng, nw.lat],
+        ],
+      ],
+    };
   }
 
   private _regenerateAttributesFromZFXY() {
