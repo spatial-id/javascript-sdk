@@ -36,6 +36,23 @@ function __values(o) {
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 }
 
+function __read(o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+}
+
 function isZFXYTile(tile) {
     return ('z' in tile && 'f' in tile && 'x' in tile && 'y' in tile);
 }
@@ -72,6 +89,7 @@ function parseZFXYString(str) {
         y: parseInt(match[4], 10),
     };
 }
+/** Returns the lng,lat of the northwest corner of the provided tile */
 function getLngLat(tile) {
     var n = Math.PI - 2 * Math.PI * tile.y / Math.pow(2, tile.z);
     return {
@@ -82,6 +100,10 @@ function getLngLat(tile) {
 function getCenterLngLat(tile) {
     var x = tile.x * 2 + 1, y = tile.y * 2 + 1, z = tile.z + 1;
     return getLngLat({ x: x, y: y, z: z, f: 0 });
+}
+function getBBox(tile) {
+    var nw = getLngLat(tile), se = getLngLat(__assign(__assign({}, tile), { y: tile.y + 1, x: tile.x + 1 }));
+    return [nw, se];
 }
 /** Returns the floor of the voxel, in meters */
 function getFloor(tile) {
@@ -244,6 +266,22 @@ var Space = /** @class */ (function () {
     };
     Space.prototype.children = function () {
         return getChildren(this.zfxy).map(function (tile) { return new Space(tile); });
+    };
+    /** Calculates the polygon of this Space and returns a 2D GeoJSON Polygon. */
+    Space.prototype.toGeoJSON = function () {
+        var _a = __read(getBBox(this.zfxy), 2), nw = _a[0], se = _a[1];
+        return {
+            type: 'Polygon',
+            coordinates: [
+                [
+                    [nw.lng, nw.lat],
+                    [nw.lng, se.lat],
+                    [se.lng, se.lat],
+                    [se.lng, nw.lat],
+                    [nw.lng, nw.lat],
+                ],
+            ],
+        };
     };
     Space.prototype._regenerateAttributesFromZFXY = function () {
         this.center = getCenterLngLat(this.zfxy);
