@@ -8,7 +8,7 @@ export declare type ZFXYTile = {
 export declare function isZFXYTile(tile: any): tile is ZFXYTile;
 export declare const ZFXY_1M_ZOOM_BASE: 25;
 export declare const ZFXY_ROOT_TILE: ZFXYTile;
-export declare function getParent(tile: ZFXYTile): ZFXYTile;
+export declare function getParent(tile: ZFXYTile, steps?: number): ZFXYTile;
 export declare function getChildren(tile?: ZFXYTile): ZFXYTile[];
 export declare function parseZFXYString(str: string): ZFXYTile | undefined;
 /** Returns the lng,lat of the northwest corner of the provided tile */

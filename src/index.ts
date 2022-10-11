@@ -84,8 +84,9 @@ export class Space {
     return newSpace;
   }
 
-  parent() {
-    return new Space(getParent(this.zfxy));
+  parent(atZoom?: number) {
+    const steps = (typeof atZoom === 'undefined') ? 1 : this.zfxy.z - atZoom;
+    return new Space(getParent(this.zfxy, steps));
   }
 
   children() {
