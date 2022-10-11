@@ -63,9 +63,21 @@ function isZFXYTile(tile) {
 var ZFXY_1M_ZOOM_BASE = 25;
 var ZFXY_ROOT_TILE = { f: 0, x: 0, y: 0, z: 0 };
 var rad2deg = 180 / Math.PI;
-function getParent(tile) {
+function getParent(tile, steps) {
+    if (steps === void 0) { steps = 1; }
     var f = tile.f, x = tile.x, y = tile.y, z = tile.z;
-    return { f: f >> 1, x: x >> 1, y: y >> 1, z: z - 1 };
+    if (steps <= 0) {
+        throw new Error('steps must be greater than 0');
+    }
+    if (steps > z) {
+        throw new Error("Getting parent tile of ".concat(tile, ", ").concat(steps, " steps is not possible because it would go beyond the root tile (z=0)"));
+    }
+    return {
+        f: f >> steps,
+        x: x >> steps,
+        y: y >> steps,
+        z: z - steps,
+    };
 }
 function getChildren(tile) {
     if (tile === void 0) { tile = ZFXY_ROOT_TILE; }
@@ -265,8 +277,9 @@ var Space = /** @class */ (function () {
         newSpace._regenerateAttributesFromZFXY();
         return newSpace;
     };
-    Space.prototype.parent = function () {
-        return new Space(getParent(this.zfxy));
+    Space.prototype.parent = function (atZoom) {
+        var steps = (typeof atZoom === 'undefined') ? 1 : this.zfxy.z - atZoom;
+        return new Space(getParent(this.zfxy, steps));
     };
     Space.prototype.children = function () {
         return getChildren(this.zfxy).map(function (tile) { return new Space(tile); });

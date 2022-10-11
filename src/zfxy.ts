@@ -11,10 +11,22 @@ export const ZFXY_ROOT_TILE: ZFXYTile = { f: 0, x: 0, y: 0, z: 0 };
 
 const rad2deg = 180 / Math.PI;
 
-export function getParent(tile: ZFXYTile): ZFXYTile {
+export function getParent(tile: ZFXYTile, steps: number = 1): ZFXYTile {
   const { f,x,y,z } = tile;
-  return { f: f>>1,x: x>>1, y: y>>1, z: z-1 };
+  if (steps <= 0) {
+    throw new Error('steps must be greater than 0');
+  }
+  if (steps > z) {
+    throw new Error(`Getting parent tile of ${tile}, ${steps} steps is not possible because it would go beyond the root tile (z=0)`);
+  }
+  return {
+    f: f >> steps,
+    x: x >> steps,
+    y: y >> steps,
+    z: z -  steps,
+  };
 }
+
 export function getChildren(tile: ZFXYTile = ZFXY_ROOT_TILE): ZFXYTile[] {
   const {f,x,y,z} = tile;
   return [

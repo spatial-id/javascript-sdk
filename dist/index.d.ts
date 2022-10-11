@@ -22,7 +22,7 @@ export declare class Space {
     east(by?: number): Space;
     west(by?: number): Space;
     move(by: Partial<Omit<ZFXYTile, 'z'>>): Space;
-    parent(): Space;
+    parent(atZoom?: number): Space;
     children(): Space[];
     /** Calculates the polygon of this Space and returns a 2D GeoJSON Polygon. */
     toGeoJSON(): Polygon;

@@ -47,4 +47,18 @@ describe('Space', () => {
       });
     });
   }
+
+  describe('parent', () => {
+    it('returns the correct parent coordinates with no arguments', () => {
+      const space = new Space('25/0/29803304/13212456');
+      expect(space.parent().zfxy).toStrictEqual({z: 24, f: 0, x: 14901652, y: 6606228});
+    });
+    it('returns the correct parent coordinates at a specified zoom level', () => {
+      const space = new Space('25/0/29803304/13212456');
+      expect(space.parent(23).zfxy).toStrictEqual({z: 23, f: 0, x: 7450826, y: 3303114});
+      expect(space.parent(22).zfxy).toStrictEqual({z: 22, f: 0, x: 3725413, y: 1651557});
+      expect(space.parent(14).zfxy).toStrictEqual({z: 14, f: 0, x: 14552, y: 6451});
+      expect(space.parent(0).zfxy).toStrictEqual({z: 0, f: 0, x: 0, y: 0});
+    });
+  });
 });
