@@ -9,8 +9,9 @@ const config = {
   output: [
     {
       file: packageJson.main,
-      format: 'cjs',
+      format: 'umd',
       sourcemap: true,
+      name: 'SpatialId',
     },
     {
       file: packageJson.module,
