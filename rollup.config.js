@@ -21,7 +21,9 @@ const config = {
   ],
   plugins: [
     resolve(),
-    commonjs(),
+    commonjs({
+      requireReturnsDefault: "auto",
+    }),
     typescript({ useTsconfigDeclarationDir: true }),
   ],
 };

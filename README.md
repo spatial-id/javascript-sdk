@@ -58,6 +58,21 @@ Space( input, zoom? )
 
 この引数は省略も可能で、デフォルトは `25` です。
 
+## 補助コンストラクタ
+
+```
+Space.boundingSpaceForGeometry( geometry, minZoom? )
+```
+
+`geometry` に渡された GeoJSON の Geometry オブジェクトに対して、最小分解能（ズームレベル）での空間IDを返す。
+`minZoom` が指定している場合は、より少ない分解能（ズームレベル）の空間IDが作られるにしても、 `minZoom` での空間IDを返す。
+
+```
+Space.spacesForGeometry( geometry, zoom )
+```
+
+`geometry` に渡された GeoJSON の Geometry オブジェクトに対して、その Geometry と指定の `zoom` での分解能（ズームレベル）の空間IDの共通集合を配列として返す。
+
 ## メソッド
 
 ```
