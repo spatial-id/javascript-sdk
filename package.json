@@ -30,6 +30,8 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.0",
     "@rollup/plugin-node-resolve": "^13.2.1",
+    "@turf/bbox": "^6.5.0",
+    "@turf/boolean-intersects": "^6.5.0",
     "@types/geojson": "^7946.0.8",
     "@types/jest": "^27.4.1",
     "jest": "^27.5.1",

@@ -1,7 +1,10 @@
 import { LngLat, LngLatWithAltitude } from "./types";
 import { calculateZFXY, getBBox, getCenterLngLat, getChildren, getFloor, getParent, isZFXYTile, parseZFXYString, ZFXYTile, zfxyWraparound } from "./zfxy";
 import { generateTilehash, parseZFXYTilehash } from "./zfxy_tilehash";
-import type { Polygon } from "geojson";
+import turfBBox from '@turf/bbox';
+import turfBooleanIntersects from '@turf/boolean-intersects';
+import type { BBox, Geometry, Polygon } from "geojson";
+import { bboxToTile, pointToTile } from "./tilebelt";
 
 const DEFAULT_ZOOM = 25 as const;
 
@@ -108,6 +111,50 @@ export class Space {
         ],
       ],
     };
+  }
+
+  /** Calculates the smallest spatial ID to fully contain the polygon. Currently only supports 2D polygons. */
+  static boundingSpaceForGeometry(geom: Geometry, minZoom?: number): Space {
+    minZoom = minZoom || 25;
+    const bbox = turfBBox(geom);
+    const largestTile = bboxToTile(bbox, minZoom);
+    const [ x, y, z ] = largestTile;
+    return new Space({x, y, z, f: 0});
+  }
+
+  /** Calculate an array of spaces that make up the polygon. Currently only supports 2D polygons. */
+  static spacesForGeometry(geom: Geometry, zoom: number): Space[] {
+    const z = zoom;
+
+    if (z === 0) {
+      // not recommended.
+      return [new Space('0/0/0/0')];
+    }
+
+    if (geom.type === 'GeometryCollection') {
+      throw new Error('GeometryCollection not supported');
+    }
+
+    // this can be optimized a lot!
+    const bbox = turfBBox(geom),
+          min = pointToTile(bbox[0], bbox[1], 32),
+          max = pointToTile(bbox[2], bbox[3], 32),
+          minX = (Math.min(min[0], max[0])) >>> (32 - z),
+          minY = (Math.min(min[1], max[1])) >>> (32 - z),
+          maxX = (Math.max(max[0], min[0]) >>> (32 - z)) + 1,
+          maxY = (Math.max(max[1], min[1]) >>> (32 - z)) + 1,
+          spaces: Space[] = [];
+
+    // scanline polygon fill algorithm
+    for (let x = minX; x <= maxX; x++) {
+      for (let y = minY; y <= maxY; y++) {
+        const space = new Space({x, y, z, f: 0});
+        if (turfBooleanIntersects(geom, space.toGeoJSON())) {
+          spaces.push(space);
+        }
+      }
+    }
+    return spaces;
   }
 
   private _regenerateAttributesFromZFXY() {
