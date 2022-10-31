@@ -20,7 +20,7 @@ export declare function getFloor(tile: ZFXYTile): number;
 export interface CalculateZFXYInput {
     lat: number;
     lng: number;
-    altitude?: number;
+    alt?: number;
     zoom: number;
 }
 export declare function calculateZFXY(input: CalculateZFXYInput): ZFXYTile;

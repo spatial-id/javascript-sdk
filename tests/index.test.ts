@@ -2,6 +2,13 @@ import { Polygon } from 'geojson';
 import { Space } from '../src/index';
 
 describe('Space', () => {
+  it('should be able to create a Space from lng/lat/alt', () => {
+    const space = new Space({ lng: 0, lat: 0, alt: 10 }, 25);
+    expect(space).toBeInstanceOf(Space);
+    expect(space.zfxyStr).toStrictEqual('/25/10/16777216/16777216');
+    expect(space.tilehash).toStrictEqual('4111111111111111111115151');
+  });
+
   it('works', () => {
     const space = new Space('1/0/0/0');
     expect(space.zfxy).toStrictEqual({z: 1, f: 0, x: 0, y: 0});

@@ -84,12 +84,12 @@ export function getFloor(tile: ZFXYTile): number {
 export interface CalculateZFXYInput {
   lat: number
   lng: number
-  altitude?: number
+  alt?: number
   zoom: number
 }
 
 export function calculateZFXY(input: CalculateZFXYInput): ZFXYTile {
-  const meters = typeof input.altitude !== 'undefined' ? input.altitude : 0;
+  const meters = typeof input.alt !== 'undefined' ? input.alt : 0;
   if (meters <= -(2**ZFXY_1M_ZOOM_BASE) || meters >= (2**ZFXY_1M_ZOOM_BASE)) {
     // TODO: make altitude unlimited?
     throw new Error(`ZFXY only supports altitude between -2^${ZFXY_1M_ZOOM_BASE} and +2^${ZFXY_1M_ZOOM_BASE}.`);

@@ -122,7 +122,7 @@ function getFloor(tile) {
     return tile.f * (Math.pow(2, ZFXY_1M_ZOOM_BASE)) / (Math.pow(2, tile.z));
 }
 function calculateZFXY(input) {
-    var meters = typeof input.altitude !== 'undefined' ? input.altitude : 0;
+    var meters = typeof input.alt !== 'undefined' ? input.alt : 0;
     if (meters <= -(Math.pow(2, ZFXY_1M_ZOOM_BASE)) || meters >= (Math.pow(2, ZFXY_1M_ZOOM_BASE))) {
         // TODO: make altitude unlimited?
         throw new Error("ZFXY only supports altitude between -2^".concat(ZFXY_1M_ZOOM_BASE, " and +2^").concat(ZFXY_1M_ZOOM_BASE, "."));
