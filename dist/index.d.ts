@@ -36,6 +36,8 @@ export declare class Space {
     contains(position: LngLatWithAltitude): boolean;
     /** Calculates the polygon of this Space and returns a 2D GeoJSON Polygon. */
     toGeoJSON(): Polygon;
+    /** Calculates the 3D polygon of this Space and returns the vertices of that polygon. */
+    vertices3d(): [number, number, number][];
     static getSpaceById(id: string, zoom?: number): Space;
     static getSpaceByLocation(loc: LngLatWithAltitude, zoom?: number): Space;
     static getSpaceByZFXY(zfxyStr: string): Space;

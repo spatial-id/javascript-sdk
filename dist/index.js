@@ -4694,6 +4694,22 @@
                 ],
             };
         };
+        /** Calculates the 3D polygon of this Space and returns the vertices of that polygon. */
+        Space.prototype.vertices3d = function () {
+            var _a = __read(getBBox(this.zfxy), 2), nw = _a[0], se = _a[1];
+            var floor = getFloor(this.zfxy);
+            var ceil = getFloor(__assign(__assign({}, this.zfxy), { f: this.zfxy.f + 1 }));
+            return [
+                [nw.lng, nw.lat, floor],
+                [nw.lng, se.lat, floor],
+                [se.lng, se.lat, floor],
+                [se.lng, nw.lat, floor],
+                [nw.lng, nw.lat, ceil],
+                [nw.lng, se.lat, ceil],
+                [se.lng, se.lat, ceil],
+                [se.lng, nw.lat, ceil],
+            ];
+        };
         Space.getSpaceById = function (id, zoom) {
             return new Space(id, zoom);
         };

@@ -157,6 +157,23 @@ export class Space {
     };
   }
 
+  /** Calculates the 3D polygon of this Space and returns the vertices of that polygon. */
+  vertices3d(): [number, number, number][] {
+    const [nw, se] = getBBox(this.zfxy);
+    const floor = getFloor(this.zfxy);
+    const ceil = getFloor({...this.zfxy, f: this.zfxy.f + 1});
+    return [
+      [nw.lng, nw.lat, floor],
+      [nw.lng, se.lat, floor],
+      [se.lng, se.lat, floor],
+      [se.lng, nw.lat, floor],
+      [nw.lng, nw.lat, ceil],
+      [nw.lng, se.lat, ceil],
+      [se.lng, se.lat, ceil],
+      [se.lng, nw.lat, ceil],
+    ];
+  }
+
   static getSpaceById(id: string, zoom?: number) {
     return new Space(id, zoom);
   }
