@@ -41,6 +41,21 @@ export function getChildren(tile: ZFXYTile = ZFXY_ROOT_TILE): ZFXYTile[] {
   ];
 }
 
+export function getSurrounding(tile: ZFXYTile = ZFXY_ROOT_TILE): ZFXYTile[] {
+  const {f,x,y,z} = tile;
+  return [
+    zfxyWraparound({f: f, x: x,     y: y,     z: z}), // f +0, x +0, y +0
+    zfxyWraparound({f: f, x: x + 1, y: y,     z: z}), // f +0, x +1, y +0
+    zfxyWraparound({f: f, x: x,     y: y + 1, z: z}), // f +0, x +0, y +1
+    zfxyWraparound({f: f, x: x + 1, y: y + 1, z: z}), // f +0, x +1, y +1
+    zfxyWraparound({f: f, x: x - 1, y: y,     z: z}), // f +0, x -1, y +0
+    zfxyWraparound({f: f, x: x,     y: y - 1, z: z}), // f +0, x +0, y -1
+    zfxyWraparound({f: f, x: x - 1, y: y - 1, z: z}), // f +0, x -1, y -1
+    zfxyWraparound({f: f, x: x + 1, y: y - 1, z: z}), // f +0, x +1, y -1
+    zfxyWraparound({f: f, x: x - 1, y: y + 1, z: z}), // f +0, x -1, y +1
+  ];
+}
+
 export function parseZFXYString(str: string): ZFXYTile | undefined {
   const match = str.match(/^\/?(\d+)\/(?:(\d+)\/)?(\d+)\/(\d+)$/);
   if (!match) {
@@ -125,7 +140,7 @@ export function zfxyWraparound(tile: ZFXYTile): ZFXYTile {
   return {
     z,
     f: Math.max(Math.min(f, (2**z)), -(2**z)),
-    x: x % 2**z,
-    y: y % 2**z,
+    x: (x < 0) ? x + 2**z : x % 2**z,
+    y: (y < 0) ? y + 2**z : y % 2**z,
   }
 }

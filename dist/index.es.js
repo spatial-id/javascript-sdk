@@ -53,6 +53,16 @@ function __read(o, n) {
     return ar;
 }
 
+function __spreadArray(to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+}
+
 function isZFXYTile(tile) {
     return ('z' in tile && 'f' in tile && 'x' in tile && 'y' in tile);
 }
@@ -87,6 +97,21 @@ function getChildren(tile) {
         { f: f * 2 + 1, x: x * 2 + 1, y: y * 2, z: z + 1 },
         { f: f * 2 + 1, x: x * 2, y: y * 2 + 1, z: z + 1 },
         { f: f * 2 + 1, x: x * 2 + 1, y: y * 2 + 1, z: z + 1 }, // f +1, x +1, y +1
+    ];
+}
+function getSurrounding(tile) {
+    if (tile === void 0) { tile = ZFXY_ROOT_TILE; }
+    var f = tile.f, x = tile.x, y = tile.y, z = tile.z;
+    return [
+        zfxyWraparound({ f: f, x: x, y: y, z: z }),
+        zfxyWraparound({ f: f, x: x + 1, y: y, z: z }),
+        zfxyWraparound({ f: f, x: x, y: y + 1, z: z }),
+        zfxyWraparound({ f: f, x: x + 1, y: y + 1, z: z }),
+        zfxyWraparound({ f: f, x: x - 1, y: y, z: z }),
+        zfxyWraparound({ f: f, x: x, y: y - 1, z: z }),
+        zfxyWraparound({ f: f, x: x - 1, y: y - 1, z: z }),
+        zfxyWraparound({ f: f, x: x + 1, y: y - 1, z: z }),
+        zfxyWraparound({ f: f, x: x - 1, y: y + 1, z: z }), // f +0, x -1, y +1
     ];
 }
 function parseZFXYString(str) {
@@ -155,8 +180,8 @@ function zfxyWraparound(tile) {
     return {
         z: z,
         f: Math.max(Math.min(f, (Math.pow(2, z))), -(Math.pow(2, z))),
-        x: x % Math.pow(2, z),
-        y: y % Math.pow(2, z),
+        x: (x < 0) ? x + Math.pow(2, z) : x % Math.pow(2, z),
+        y: (y < 0) ? y + Math.pow(2, z) : y % Math.pow(2, z),
     };
 }
 
@@ -4615,6 +4640,38 @@ var Space = /** @class */ (function () {
     Space.prototype.children = function () {
         return getChildren(this.zfxy).map(function (tile) { return new Space(tile); });
     };
+    /** Return an array of Space objects at the same zoom level that surround this Space
+     * object. This method does not return the Space object itself, so the array will
+     * contain 26 Space objects.
+     */
+    Space.prototype.surroundings = function () {
+        var _this = this;
+        return __spreadArray(__spreadArray(__spreadArray([], __read((getSurrounding(this.zfxy)
+            .filter(function (_a) {
+            var z = _a.z, f = _a.f, x = _a.x, y = _a.y;
+            return "/".concat(z, "/").concat(f, "/").concat(x, "/").concat(y) !== _this.zfxyStr;
+        })
+            .map(function (tile) { return new Space(tile); }))), false), __read((getSurrounding(this.up().zfxy)
+            .map(function (tile) { return new Space(tile); }))), false), __read((getSurrounding(this.down().zfxy)
+            .map(function (tile) { return new Space(tile); }))), false);
+    };
+    /** Returns true if a point lies within this Space. If the position's altitude is not
+     * specified, it is ignored from the calculation.
+     */
+    Space.prototype.contains = function (position) {
+        var geom = this.toGeoJSON();
+        var point = {
+            type: 'Point',
+            coordinates: [position.lng, position.lat],
+        };
+        var floor = this.alt;
+        var ceil = getFloor(__assign(__assign({}, this.zfxy), { f: this.zfxy.f + 1 }));
+        return (booleanIntersects(geom, point) &&
+            (typeof position.alt !== 'undefined' === true ?
+                position.alt >= floor && position.alt < ceil
+                :
+                    true));
+    };
     /** Calculates the polygon of this Space and returns a 2D GeoJSON Polygon. */
     Space.prototype.toGeoJSON = function () {
         var _a = __read(getBBox(this.zfxy), 2), nw = _a[0], se = _a[1];
@@ -4630,6 +4687,31 @@ var Space = /** @class */ (function () {
                 ],
             ],
         };
+    };
+    /** Calculates the 3D polygon of this Space and returns the vertices of that polygon. */
+    Space.prototype.vertices3d = function () {
+        var _a = __read(getBBox(this.zfxy), 2), nw = _a[0], se = _a[1];
+        var floor = getFloor(this.zfxy);
+        var ceil = getFloor(__assign(__assign({}, this.zfxy), { f: this.zfxy.f + 1 }));
+        return [
+            [nw.lng, nw.lat, floor],
+            [nw.lng, se.lat, floor],
+            [se.lng, se.lat, floor],
+            [se.lng, nw.lat, floor],
+            [nw.lng, nw.lat, ceil],
+            [nw.lng, se.lat, ceil],
+            [se.lng, se.lat, ceil],
+            [se.lng, nw.lat, ceil],
+        ];
+    };
+    Space.getSpaceById = function (id, zoom) {
+        return new Space(id, zoom);
+    };
+    Space.getSpaceByLocation = function (loc, zoom) {
+        return new Space(loc, zoom);
+    };
+    Space.getSpaceByZFXY = function (zfxyStr) {
+        return new Space(zfxyStr);
     };
     /** Calculates the smallest spatial ID to fully contain the polygon. Currently only supports 2D polygons. */
     Space.boundingSpaceForGeometry = function (geom, minZoom) {
@@ -4666,7 +4748,7 @@ var Space = /** @class */ (function () {
         this.center = getCenterLngLat(this.zfxy);
         this.alt = getFloor(this.zfxy);
         this.zoom = this.zfxy.z;
-        this.tilehash = generateTilehash(this.zfxy);
+        this.id = this.tilehash = generateTilehash(this.zfxy);
         this.zfxyStr = "/".concat(this.zfxy.z, "/").concat(this.zfxy.f, "/").concat(this.zfxy.x, "/").concat(this.zfxy.y);
     };
     return Space;
