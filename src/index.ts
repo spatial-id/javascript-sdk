@@ -1,5 +1,5 @@
 import { LngLat, LngLatWithAltitude } from "./types";
-import { calculateZFXY, getBBox, getCenterLngLat, getChildren, getFloor, getParent, isZFXYTile, parseZFXYString, ZFXYTile, zfxyWraparound } from "./zfxy";
+import { calculateZFXY, getBBox, getCenterLngLat, getChildren, getFloor, getParent, isZFXYTile, parseZFXYString, ZFXYTile, zfxyWraparound, getSurrounding } from "./zfxy";
 import { generateTilehash, parseZFXYTilehash } from "./zfxy_tilehash";
 import turfBBox from '@turf/bbox';
 import turfBooleanIntersects from '@turf/boolean-intersects';
@@ -15,6 +15,7 @@ export class Space {
 
   zfxy: ZFXYTile
 
+  id: string
   zfxyStr: string
   tilehash: string
 
@@ -96,6 +97,49 @@ export class Space {
     return getChildren(this.zfxy).map((tile) => new Space(tile));
   }
 
+  /** Return an array of Space objects at the same zoom level that surround this Space
+   * object. This method does not return the Space object itself, so the array will
+   * contain 26 Space objects.
+   */
+  surroundings(): Space[] {
+    return [
+      ...(
+        getSurrounding(this.zfxy)
+        .filter(({z,f,x,y}) => `/${z}/${f}/${x}/${y}` !== this.zfxyStr)
+        .map((tile) => new Space(tile))
+      ),
+      ...(
+        getSurrounding(this.up().zfxy)
+        .map((tile) => new Space(tile))
+      ),
+      ...(
+        getSurrounding(this.down().zfxy)
+        .map((tile) => new Space(tile))
+      ),
+    ];
+  }
+
+  /** Returns true if a point lies within this Space. If the position's altitude is not
+   * specified, it is ignored from the calculation.
+   */
+  contains(position: LngLatWithAltitude) {
+    const geom = this.toGeoJSON();
+    const point = {
+      type: 'Point',
+      coordinates: [position.lng, position.lat],
+    };
+    const floor = this.alt;
+    const ceil = getFloor({...this.zfxy, f: this.zfxy.f + 1});
+    return (
+      turfBooleanIntersects(geom, point) &&
+      (typeof position.alt !== 'undefined' === true ?
+        position.alt >= floor && position.alt < ceil
+        :
+        true
+      )
+    );
+  }
+
   /** Calculates the polygon of this Space and returns a 2D GeoJSON Polygon. */
   toGeoJSON(): Polygon {
     const [nw, se] = getBBox(this.zfxy);
@@ -111,6 +155,18 @@ export class Space {
         ],
       ],
     };
+  }
+
+  static getSpaceById(id: string, zoom?: number) {
+    return new Space(id, zoom);
+  }
+
+  static getSpaceByLocation(loc: LngLatWithAltitude, zoom?: number) {
+    return new Space(loc, zoom);
+  }
+
+  static getSpaceByZFXY(zfxyStr: string) {
+    return new Space(zfxyStr);
   }
 
   /** Calculates the smallest spatial ID to fully contain the polygon. Currently only supports 2D polygons. */
@@ -161,7 +217,7 @@ export class Space {
     this.center = getCenterLngLat(this.zfxy);
     this.alt = getFloor(this.zfxy);
     this.zoom = this.zfxy.z;
-    this.tilehash = generateTilehash(this.zfxy);
+    this.id = this.tilehash = generateTilehash(this.zfxy);
     this.zfxyStr = `/${this.zfxy.z}/${this.zfxy.f}/${this.zfxy.x}/${this.zfxy.y}`;
   }
 }
