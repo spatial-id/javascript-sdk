@@ -75,19 +75,83 @@ Space.spacesForGeometry( geometry, zoom )
 
 ## メソッド
 
+このライブラリは [Spatial Object Model](https://github.com/spatial-id/spatial-object-model-specification#readme) を参照に実装しています。
+
+`Space` のメソッドのドキュメンテーションは下記となります。
+
+### `.center`
+
+* 現在の空間オブジェクトの中央点 (2Dの `{lng: number, lat: number}` 型)
+
+### `.alt`
+
+* 現在の空間オブジェクトの最低高さ (floor)
+
+### `.zoom`
+
+* 現在の空間オブジェクトのズームレベル（分解能）
+
+### `.zfxy`
+
+* 現在の空間オブジェクトが表現している ZFXY を ZFXYTile 型 (`{ z: number, f: number, x: number, y: number }`)
+
+### `.id`, `.tilehash`
+
+* 現在の空間オブジェクトが表現している ZFXY の tilehash の文字列
+
+### `.zfxyStr`
+
+* 現在の空間オブジェクトが表現している ZFXY を URL のパス型に変換したもの
+
+### `.up(by?: number)`
+
+![up](https://user-images.githubusercontent.com/309946/168220328-47e09300-c4dc-4ad1-adae-2cb17aff23ab.png)
+
+* パラメータがない場合は、現在の空間オブジェクトのひとつ上の空間オブジェクトを返す
+* パラメータが指定されている場合は、その個数分の空間オブジェクトを配列で返す
+
+### `.down(by?: number)`
+
+![down](https://user-images.githubusercontent.com/309946/168220818-f89a73b1-b99c-462d-9fcb-5eae0eac03eb.png)
+
+* パラメータがない場合は現在の空間オブジェクトのひとつ下の空間オブジェクトを返す
+* パラメータが指定されている場合は、その個数分の空間オブジェクトを配列で返す
+
+### `.north(by?: number), .east(by?: number), south(by?: number), .west(by?: number)`
+
+![north](https://user-images.githubusercontent.com/309946/168221234-b03809ef-6c69-442b-98d3-583b4391108e.png)
+
+* パラメータがない場合は、現在の空間オブジェクトの隣のオブジェクトを返す
+* パラメータが指定されている場合は、その個数分の空間オブジェクトを配列で返す
+
+### `.move(by: Partial<Omit<ZFXYTile, 'z'>>)`
+
+* 現在の空間オブジェクトから相対的な新しいオブジェクトを返す。 `by` は少なくとも `x, y, f` の一つ以上を含めてください
+
 ```
-up()
+space.move({x: 1, y: 5, f: -1})
 ```
 
-現在の空間のひとつ上の空間に移動します。整数を引数として渡すとその個数分だけ空間を移動します。
+上記の例の場合では、返り値は西1マス、北5マス、下1マスにある空間オブジェクト
 
-```
-down()
-```
+### `.surroundings()`
 
-現在の空間のひとつ下の空間に移動します。整数を引数として渡すとその個数分だけ空間を移動します。
+![surroundings](https://user-images.githubusercontent.com/309946/168221371-b1ec30c7-f501-4a6b-ad64-5a6345fb9665.png)
 
-その他のメソッドについては、以下のリンク先をご参照ください。
-（まだ未実装のものもあります！）
+* 現在の空間オブジェクトのまわりにあるすべての空間オブジェクトを配列で返す。
 
-https://github.com/spatial-id/spatial-object-model-specification#readme
+### `.parent(atZoom?: number)`
+
+* 現在の空間オブジェクトから、分解能（ズームレベル）を `atZoom` のズームレベルまで下げる。デフォルトでは1段階下げます。
+
+### `.children()`
+
+* 現在の空間オブジェクトから、分解能（ズームレベル）を一つ上げて、そこに含まれるすべての空間オブジェクトを返す。
+
+### `.contains()`
+
+* 指定された緯度経度が、指定されたボクセル内に含まれるかどうかを判定して bool 値を返す。
+
+### `.vertices3d()`
+
+* 現在の空間オブジェクトの3Dバウンディングボックスを作る8点の座標を配列として返す。
