@@ -1,15 +1,15 @@
-import { LngLat, LngLatWithAltitude } from "./types";
-import { calculateZFXY, getBBox, getCenterLngLat, getChildren, getFloor, getParent, isZFXYTile, parseZFXYString, ZFXYTile, zfxyWraparound, getSurrounding } from "./zfxy";
+import { LngLatWithAltitude } from "./types";
+import { calculateZFXY, getBBox, getChildren, getFloor, getParent, isZFXYTile, parseZFXYString, ZFXYTile, zfxyWraparound, getSurrounding, getCenterLngLatAlt } from "./zfxy";
 import { generateTilehash, parseZFXYTilehash } from "./zfxy_tilehash";
 import turfBBox from '@turf/bbox';
 import turfBooleanIntersects from '@turf/boolean-intersects';
-import type { BBox, Geometry, Polygon } from "geojson";
+import type { Geometry, Polygon } from "geojson";
 import { bboxToTile, pointToTile } from "./tilebelt";
 
 const DEFAULT_ZOOM = 25 as const;
 
 export class Space {
-  center: LngLat
+  center: LngLatWithAltitude
   alt: number
   zoom: number
 
@@ -231,8 +231,8 @@ export class Space {
   }
 
   private _regenerateAttributesFromZFXY() {
-    this.center = getCenterLngLat(this.zfxy);
     this.alt = getFloor(this.zfxy);
+    this.center = getCenterLngLatAlt(this.zfxy);
     this.zoom = this.zfxy.z;
     this.id = this.tilehash = generateTilehash(this.zfxy);
     this.zfxyStr = `/${this.zfxy.z}/${this.zfxy.f}/${this.zfxy.x}/${this.zfxy.y}`;

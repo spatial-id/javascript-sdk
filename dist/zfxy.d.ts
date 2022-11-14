@@ -1,4 +1,4 @@
-import { LngLat } from "./types";
+import { LngLat, LngLatWithAltitude } from "./types";
 export declare type ZFXYTile = {
     z: number;
     f: number;
@@ -15,6 +15,7 @@ export declare function parseZFXYString(str: string): ZFXYTile | undefined;
 /** Returns the lng,lat of the northwest corner of the provided tile */
 export declare function getLngLat(tile: ZFXYTile): LngLat;
 export declare function getCenterLngLat(tile: ZFXYTile): LngLat;
+export declare function getCenterLngLatAlt(tile: ZFXYTile): LngLatWithAltitude;
 export declare function getBBox(tile: ZFXYTile): [LngLat, LngLat];
 /** Returns the floor of the voxel, in meters */
 export declare function getFloor(tile: ZFXYTile): number;

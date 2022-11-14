@@ -14,6 +14,11 @@ describe('Space', () => {
     expect(space.zfxy).toStrictEqual({z: 1, f: 0, x: 0, y: 0});
     expect(space.zfxyStr).toStrictEqual('/1/0/0/0');
     expect(space.tilehash).toStrictEqual('1');
+    expect(space.center).toStrictEqual({
+      "alt": 8388608,
+      "lat": 66.51326044311186,
+      "lng": -90,
+    });
 
     expect(space.up(1).zfxy).toStrictEqual({z: 1, f: 1, x: 0, y: 0});
     expect(space.up(1).tilehash).toStrictEqual('5');

@@ -1,4 +1,4 @@
-import { LngLat } from "./types";
+import { LngLat, LngLatWithAltitude } from "./types";
 
 export type ZFXYTile = { z: number, f: number, x: number, y: number };
 
@@ -83,6 +83,13 @@ export function getCenterLngLat(tile: ZFXYTile): LngLat {
         y = tile.y * 2 + 1,
         z = tile.z + 1;
   return getLngLat({x, y, z, f: 0});
+}
+
+export function getCenterLngLatAlt(tile: ZFXYTile): LngLatWithAltitude {
+  return {
+    ...getCenterLngLat(tile),
+    alt: getFloor(tile) + ((2**ZFXY_1M_ZOOM_BASE) / (2**(tile.z + 1))),
+  };
 }
 
 export function getBBox(tile: ZFXYTile): [LngLat, LngLat] {

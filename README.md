@@ -81,7 +81,7 @@ Space.spacesForGeometry( geometry, zoom )
 
 ### `.center`
 
-* 現在の空間オブジェクトの中央点 (2Dの `{lng: number, lat: number}` 型)
+* 現在の空間オブジェクトの中央点 (3Dの `{lng: number, lat: number, alt: number}` 型)
 
 ### `.alt`
 

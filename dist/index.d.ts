@@ -1,8 +1,8 @@
-import { LngLat, LngLatWithAltitude } from "./types";
+import { LngLatWithAltitude } from "./types";
 import { ZFXYTile } from "./zfxy";
 import type { Geometry, Polygon } from "geojson";
 export declare class Space {
-    center: LngLat;
+    center: LngLatWithAltitude;
     alt: number;
     zoom: number;
     zfxy: ZFXYTile;

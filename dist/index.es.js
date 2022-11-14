@@ -138,6 +138,9 @@ function getCenterLngLat(tile) {
     var x = tile.x * 2 + 1, y = tile.y * 2 + 1, z = tile.z + 1;
     return getLngLat({ x: x, y: y, z: z, f: 0 });
 }
+function getCenterLngLatAlt(tile) {
+    return __assign(__assign({}, getCenterLngLat(tile)), { alt: getFloor(tile) + ((Math.pow(2, ZFXY_1M_ZOOM_BASE)) / (Math.pow(2, (tile.z + 1)))) });
+}
 function getBBox(tile) {
     var nw = getLngLat(tile), se = getLngLat(__assign(__assign({}, tile), { y: tile.y + 1, x: tile.x + 1 }));
     return [nw, se];
@@ -4745,8 +4748,8 @@ var Space = /** @class */ (function () {
         return spaces;
     };
     Space.prototype._regenerateAttributesFromZFXY = function () {
-        this.center = getCenterLngLat(this.zfxy);
         this.alt = getFloor(this.zfxy);
+        this.center = getCenterLngLatAlt(this.zfxy);
         this.zoom = this.zfxy.z;
         this.id = this.tilehash = generateTilehash(this.zfxy);
         this.zfxyStr = "/".concat(this.zfxy.z, "/").concat(this.zfxy.f, "/").concat(this.zfxy.x, "/").concat(this.zfxy.y);
