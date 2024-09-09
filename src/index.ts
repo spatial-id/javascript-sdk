@@ -5,6 +5,7 @@ import turfBBox from '@turf/bbox';
 import turfBooleanIntersects from '@turf/boolean-intersects';
 import type { Geometry, Polygon } from "geojson";
 import { bboxToTile, pointToTile } from "./tilebelt";
+import { generateHilbertIndex, generateHilbertTilehash, parseHilbertTilehash } from "./hilbert_tilehash";
 
 const DEFAULT_ZOOM = 25 as const;
 
@@ -18,6 +19,8 @@ export class Space {
   id: string
   zfxyStr: string
   tilehash: string
+  hilbertIndex: bigint
+  hilbertTilehash: string
 
   /**
    * Create a new Space
@@ -28,7 +31,7 @@ export class Space {
   constructor(input: LngLatWithAltitude | ZFXYTile | string, zoom?: number) {
     if (typeof input === 'string') {
       // parse string
-      let zfxy = parseZFXYString(input) || parseZFXYTilehash(input);
+      let zfxy = parseZFXYString(input) || parseHilbertTilehash(input) || parseZFXYTilehash(input);
       if (zfxy) {
         this.zfxy = zfxy;
         this._regenerateAttributesFromZFXY();
@@ -236,5 +239,7 @@ export class Space {
     this.zoom = this.zfxy.z;
     this.id = this.tilehash = generateTilehash(this.zfxy);
     this.zfxyStr = `/${this.zfxy.z}/${this.zfxy.f}/${this.zfxy.x}/${this.zfxy.y}`;
+    this.hilbertIndex = generateHilbertIndex(this.zfxy);
+    this.hilbertTilehash = generateHilbertTilehash(this.zfxy);
   }
 }

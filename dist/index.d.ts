@@ -9,6 +9,8 @@ export declare class Space {
     id: string;
     zfxyStr: string;
     tilehash: string;
+    hilbertIndex: bigint;
+    hilbertTilehash: string;
     /**
      * Create a new Space
      *

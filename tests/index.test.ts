@@ -7,6 +7,7 @@ describe('Space', () => {
     expect(space).toBeInstanceOf(Space);
     expect(space.zfxyStr).toStrictEqual('/25/10/16777216/16777216');
     expect(space.tilehash).toStrictEqual('4111111111111111111115151');
+    expect(space.hilbertTilehash).toStrictEqual('H6757575757575757575756523');
   });
 
   it('works', () => {
@@ -24,6 +25,55 @@ describe('Space', () => {
     expect(space.up(1).tilehash).toStrictEqual('5');
     expect(space.down(1).zfxy).toStrictEqual({z: 1, f: -1, x: 0, y: 0});
     expect(space.down(1).tilehash).toStrictEqual('-5');
+  });
+
+  describe('tilehash', () => {
+    it('creating a space from a truncated tilehash returns its parent', () => {
+      let tilehash = '4111111111111111111115151';
+      let child = new Space(tilehash);
+      while (tilehash.length > 1) {
+        tilehash = tilehash.slice(0, -1);
+        const parent = new Space(tilehash);
+        expect(child.parent().zfxy).toStrictEqual(parent.zfxy);
+        child = parent;
+      }
+    });
+
+    it('creating a space from a truncated Hilbert tilehash returns its parent', () => {
+      let tilehash = 'H6757575757575757575756523';
+      let child = new Space(tilehash);
+      while (tilehash.length > 2) {
+        tilehash = tilehash.slice(0, -1);
+        const parent = new Space(tilehash);
+        expect(child.parent().zfxy).toStrictEqual(parent.zfxy);
+        child = parent;
+      }
+    });
+  });
+
+  describe('creates spaces from lng/lat/alt and can convert them back', () => {
+    const points: { lng: number, lat: number, alt: number }[] = [];
+    for (let i = 0; i < 1000; i++) {
+      points.push({
+        lng: Math.random() * 360 - 180, // -180 ~ 180
+        lat: Math.random() * 170.12 - 85.06, // -85.06 ~ 85.06
+        alt: Math.random() * 500 - 100, // -100 ~ 400
+      });
+    }
+
+    for (const point of points) {
+      const space = new Space(point, 25);
+
+      it(`works for (${point.lng}, ${point.lat}, ${point.alt}) (zfxy=${space.zfxyStr}, hilbertIndex=${space.hilbertIndex})`, () => {
+        const tilehash = space.tilehash;
+        const space2 = new Space(tilehash);
+        expect(space2.zfxy).toStrictEqual(space.zfxy);
+
+        const space3 = new Space(space.hilbertTilehash);
+        expect(space3.hilbertIndex).toStrictEqual(space.hilbertIndex);
+        expect(space3.zfxy).toStrictEqual(space.zfxy);
+      });
+    }
   });
 
   const zfxyToPolygonTruthTable: [string, number[][]][] = [
