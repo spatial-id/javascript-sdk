@@ -1,4 +1,3 @@
-import { decodeMorton3D, encodeMorton3D } from "./hilbert";
 import { ZFXYTile, getChildren, getParent } from "./zfxy";
 
 export function parseZFXYTilehash(th: string): ZFXYTile {

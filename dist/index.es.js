@@ -4584,36 +4584,25 @@ function hilbertToMortonN(hilbertIndex, bits) {
 }
 
 // Functions to encode/decode 3D xyz coordinates to/from a Hilbert distance
-function hilbert3D(x, y, z, order) {
-    // const curve = new HilbertCurve(order, 3);
-    // return curve.index(BigInt(x), BigInt(y), BigInt(z));
-    return encodeHilbert3D(x, y, z, order);
-}
-function inverseHilbert3D(hilbertDistance, order) {
-    // const curve = new HilbertCurve(order, 3);
-    // const [x, y, z] = curve.point(hilbertDistance);
-    // return [Number(x), Number(y), Number(z)];
-    return decodeHilbert3D(hilbertDistance, order);
-}
 function generateHilbertIndex(tile) {
     // normalize the f attribute to be positive
     // this allows negative f values to be encoded in the hilbert index
     const f = tile.z > 0 ? tile.f + (2 ** (tile.z - 1)) : 0;
-    return hilbert3D(tile.x, tile.y, f, tile.z);
+    return encodeHilbert3D(tile.x, tile.y, f, tile.z);
 }
 function parseHilbertIndex(hilbertDistance, z) {
     if (z === 0) {
         return { z: 0, f: 0, x: 0, y: 0 };
     }
-    const [x, y, originalF] = inverseHilbert3D(hilbertDistance, z);
+    const [x, y, originalF] = decodeHilbert3D(hilbertDistance, z);
     // denormalize the f attribute
     const f = originalF - (2 ** (z - 1));
     return { f, x, y, z };
 }
-function generateHilbertTilehash(tile) {
+function generateHilbertTilehash(hilbertIndex, order) {
     // radix 8 compresses 3 bits into 1 character (0-7)
     // we want 1-8, so we add 1 to each digit of the string
-    return 'H' + generateHilbertIndex(tile).toString(8).padStart(tile.z, '0').split('').map((c) => (parseInt(c) + 1).toString()).join('');
+    return 'H' + hilbertIndex.toString(8).padStart(order, '0').split('').map((c) => (parseInt(c) + 1).toString()).join('');
 }
 function parseHilbertTilehash(th) {
     if (th[0] !== 'H') {
@@ -4807,7 +4796,7 @@ class Space {
         this.id = this.tilehash = generateTilehash(this.zfxy);
         this.zfxyStr = `/${this.zfxy.z}/${this.zfxy.f}/${this.zfxy.x}/${this.zfxy.y}`;
         this.hilbertIndex = generateHilbertIndex(this.zfxy);
-        this.hilbertTilehash = generateHilbertTilehash(this.zfxy);
+        this.hilbertTilehash = generateHilbertTilehash(this.hilbertIndex, this.zfxy.z);
     }
 }
 
