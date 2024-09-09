@@ -240,6 +240,6 @@ export class Space {
     this.id = this.tilehash = generateTilehash(this.zfxy);
     this.zfxyStr = `/${this.zfxy.z}/${this.zfxy.f}/${this.zfxy.x}/${this.zfxy.y}`;
     this.hilbertIndex = generateHilbertIndex(this.zfxy);
-    this.hilbertTilehash = generateHilbertTilehash(this.zfxy);
+    this.hilbertTilehash = generateHilbertTilehash(this.hilbertIndex, this.zfxy.z);
   }
 }

@@ -3,42 +3,28 @@
 // (it's actually able to handle any number of dimensions, but we only need 3 right now)
 
 import { ZFXYTile } from "./zfxy";
-// import { HilbertCurve } from "./hilbert";
 import { encodeHilbert3D, decodeHilbert3D } from "./hilbert";
-
-export function hilbert3D(x: number, y: number, z: number, order: number): bigint {
-  // const curve = new HilbertCurve(order, 3);
-  // return curve.index(BigInt(x), BigInt(y), BigInt(z));
-  return encodeHilbert3D(x, y, z, order);
-}
-
-export function inverseHilbert3D(hilbertDistance: bigint, order: number): [number, number, number] {
-  // const curve = new HilbertCurve(order, 3);
-  // const [x, y, z] = curve.point(hilbertDistance);
-  // return [Number(x), Number(y), Number(z)];
-  return decodeHilbert3D(hilbertDistance, order);
-}
 
 export function generateHilbertIndex(tile: ZFXYTile): bigint {
   // normalize the f attribute to be positive
   // this allows negative f values to be encoded in the hilbert index
   const f = tile.z > 0 ? tile.f + (2 ** (tile.z - 1)) : 0;
-  return hilbert3D(tile.x, tile.y, f, tile.z);
+  return encodeHilbert3D(tile.x, tile.y, f, tile.z);
 }
 
 export function parseHilbertIndex(hilbertDistance: bigint, z: number): ZFXYTile {
   if (z === 0) { return { z: 0, f: 0, x: 0, y: 0 }; }
 
-  const [x, y, originalF] = inverseHilbert3D(hilbertDistance, z);
+  const [x, y, originalF] = decodeHilbert3D(hilbertDistance, z);
   // denormalize the f attribute
   const f = originalF - (2 ** (z - 1));
   return { f, x, y, z };
 }
 
-export function generateHilbertTilehash(tile: ZFXYTile): string {
+export function generateHilbertTilehash(hilbertIndex: bigint, order: number): string {
   // radix 8 compresses 3 bits into 1 character (0-7)
   // we want 1-8, so we add 1 to each digit of the string
-  return 'H' + generateHilbertIndex(tile).toString(8).padStart(tile.z, '0').split('').map((c) => (parseInt(c) + 1).toString()).join('');
+  return 'H' + hilbertIndex.toString(8).padStart(order, '0').split('').map((c) => (parseInt(c) + 1).toString()).join('');
 }
 
 export function parseHilbertTilehash(th: string): undefined | ZFXYTile {

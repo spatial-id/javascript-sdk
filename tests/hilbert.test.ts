@@ -1,4 +1,4 @@
-import { hilbert3D, inverseHilbert3D } from "../src/hilbert_tilehash";
+import { encodeHilbert3D, decodeHilbert3D } from "../src/hilbert";
 
 describe('hilbert', () => {
   describe(`round-trip hilbert transformation`, () => {
@@ -22,8 +22,8 @@ describe('hilbert', () => {
     for (const [order, point] of inputs) {
       const [x, y, z] = point;
       it(`h${order}, (${x}, ${y}, ${z})`, () => {
-        const idx = hilbert3D(x, y, z, order);
-        const invPoint = inverseHilbert3D(idx, order);
+        const idx = encodeHilbert3D(x, y, z, order);
+        const invPoint = decodeHilbert3D(idx, order);
         expect(invPoint).toEqual(point);
       });
     }

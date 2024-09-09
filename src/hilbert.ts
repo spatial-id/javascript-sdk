@@ -12,13 +12,13 @@ export function decodeHilbert3D(index: bigint, bits: number): [number, number, n
 
 // Helper functions: Encode/decode Morton curve using magic bits
 // This is a 3D Morton curve implementation, adapted from https://stackoverflow.com/questions/1024754/how-to-compute-a-3d-morton-number-interleave-the-bits-of-3-ints
-function encodeMorton3D(x: number, y: number, z: number): bigint {
+export function encodeMorton3D(x: number, y: number, z: number): bigint {
   let morton = 0n;
   morton = splitBy3(x) | (splitBy3(y) << 1n) | (splitBy3(z) << 2n);
   return morton;
 }
 
-function decodeMorton3D(morton: bigint): [number, number, number] {
+export function decodeMorton3D(morton: bigint): [number, number, number] {
   let x = compactBy3(morton);
   let y = compactBy3(morton >> 1n);
   let z = compactBy3(morton >> 2n);
