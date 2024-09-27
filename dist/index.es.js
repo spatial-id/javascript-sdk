@@ -1,82 +1,16 @@
-/******************************************************************************
-Copyright (c) Microsoft Corporation.
-
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-PERFORMANCE OF THIS SOFTWARE.
-***************************************************************************** */
-
-var __assign = function() {
-    __assign = Object.assign || function __assign(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-
-function __values(o) {
-    var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
-    if (m) return m.call(o);
-    if (o && typeof o.length === "number") return {
-        next: function () {
-            if (o && i >= o.length) o = void 0;
-            return { value: o && o[i++], done: !o };
-        }
-    };
-    throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
-}
-
-function __read(o, n) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator];
-    if (!m) return o;
-    var i = m.call(o), r, ar = [], e;
-    try {
-        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-    }
-    catch (error) { e = { error: error }; }
-    finally {
-        try {
-            if (r && !r.done && (m = i["return"])) m.call(i);
-        }
-        finally { if (e) throw e.error; }
-    }
-    return ar;
-}
-
-function __spreadArray(to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
-}
-
 function isZFXYTile(tile) {
     return ('z' in tile && 'f' in tile && 'x' in tile && 'y' in tile);
 }
-var ZFXY_1M_ZOOM_BASE = 25;
-var ZFXY_ROOT_TILE = { f: 0, x: 0, y: 0, z: 0 };
-var rad2deg = 180 / Math.PI;
-function getParent(tile, steps) {
-    if (steps === void 0) { steps = 1; }
-    var f = tile.f, x = tile.x, y = tile.y, z = tile.z;
+const ZFXY_1M_ZOOM_BASE = 25;
+const ZFXY_ROOT_TILE = { f: 0, x: 0, y: 0, z: 0 };
+const rad2deg = 180 / Math.PI;
+function getParent(tile, steps = 1) {
+    const { f, x, y, z } = tile;
     if (steps <= 0) {
         throw new Error('steps must be greater than 0');
     }
     if (steps > z) {
-        throw new Error("Getting parent tile of ".concat(tile, ", ").concat(steps, " steps is not possible because it would go beyond the root tile (z=0)"));
+        throw new Error(`Getting parent tile of ${tile}, ${steps} steps is not possible because it would go beyond the root tile (z=0)`);
     }
     return {
         f: f >> steps,
@@ -85,9 +19,8 @@ function getParent(tile, steps) {
         z: z - steps,
     };
 }
-function getChildren(tile) {
-    if (tile === void 0) { tile = ZFXY_ROOT_TILE; }
-    var f = tile.f, x = tile.x, y = tile.y, z = tile.z;
+function getChildren(tile = ZFXY_ROOT_TILE) {
+    const { f, x, y, z } = tile;
     return [
         { f: f * 2, x: x * 2, y: y * 2, z: z + 1 },
         { f: f * 2, x: x * 2 + 1, y: y * 2, z: z + 1 },
@@ -99,9 +32,8 @@ function getChildren(tile) {
         { f: f * 2 + 1, x: x * 2 + 1, y: y * 2 + 1, z: z + 1 }, // f +1, x +1, y +1
     ];
 }
-function getSurrounding(tile) {
-    if (tile === void 0) { tile = ZFXY_ROOT_TILE; }
-    var f = tile.f, x = tile.x, y = tile.y, z = tile.z;
+function getSurrounding(tile = ZFXY_ROOT_TILE) {
+    const { f, x, y, z } = tile;
     return [
         zfxyWraparound({ f: f, x: x, y: y, z: z }),
         zfxyWraparound({ f: f, x: x + 1, y: y, z: z }),
@@ -115,7 +47,7 @@ function getSurrounding(tile) {
     ];
 }
 function parseZFXYString(str) {
-    var match = str.match(/^\/?(\d+)\/(?:(\d+)\/)?(\d+)\/(\d+)$/);
+    const match = str.match(/^\/?(\d+)\/(?:(\d+)\/)?(\d+)\/(\d+)$/);
     if (!match) {
         return undefined;
     }
@@ -128,40 +60,43 @@ function parseZFXYString(str) {
 }
 /** Returns the lng,lat of the northwest corner of the provided tile */
 function getLngLat(tile) {
-    var n = Math.PI - 2 * Math.PI * tile.y / Math.pow(2, tile.z);
+    const n = Math.PI - 2 * Math.PI * tile.y / Math.pow(2, tile.z);
     return {
         lng: tile.x / Math.pow(2, tile.z) * 360 - 180,
         lat: rad2deg * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))),
     };
 }
 function getCenterLngLat(tile) {
-    var x = tile.x * 2 + 1, y = tile.y * 2 + 1, z = tile.z + 1;
-    return getLngLat({ x: x, y: y, z: z, f: 0 });
+    const x = tile.x * 2 + 1, y = tile.y * 2 + 1, z = tile.z + 1;
+    return getLngLat({ x, y, z, f: 0 });
 }
 function getCenterLngLatAlt(tile) {
-    return __assign(__assign({}, getCenterLngLat(tile)), { alt: getFloor(tile) + ((Math.pow(2, ZFXY_1M_ZOOM_BASE)) / (Math.pow(2, (tile.z + 1)))) });
+    return {
+        ...getCenterLngLat(tile),
+        alt: getFloor(tile) + ((2 ** ZFXY_1M_ZOOM_BASE) / (2 ** (tile.z + 1))),
+    };
 }
 function getBBox(tile) {
-    var nw = getLngLat(tile), se = getLngLat(__assign(__assign({}, tile), { y: tile.y + 1, x: tile.x + 1 }));
+    const nw = getLngLat(tile), se = getLngLat({ ...tile, y: tile.y + 1, x: tile.x + 1 });
     return [nw, se];
 }
 /** Returns the floor of the voxel, in meters */
 function getFloor(tile) {
-    return tile.f * (Math.pow(2, ZFXY_1M_ZOOM_BASE)) / (Math.pow(2, tile.z));
+    return tile.f * (2 ** ZFXY_1M_ZOOM_BASE) / (2 ** tile.z);
 }
 function calculateZFXY(input) {
-    var meters = typeof input.alt !== 'undefined' ? input.alt : 0;
-    if (meters <= -(Math.pow(2, ZFXY_1M_ZOOM_BASE)) || meters >= (Math.pow(2, ZFXY_1M_ZOOM_BASE))) {
+    const meters = typeof input.alt !== 'undefined' ? input.alt : 0;
+    if (meters <= -(2 ** ZFXY_1M_ZOOM_BASE) || meters >= (2 ** ZFXY_1M_ZOOM_BASE)) {
         // TODO: make altitude unlimited?
-        throw new Error("ZFXY only supports altitude between -2^".concat(ZFXY_1M_ZOOM_BASE, " and +2^").concat(ZFXY_1M_ZOOM_BASE, "."));
+        throw new Error(`ZFXY only supports altitude between -2^${ZFXY_1M_ZOOM_BASE} and +2^${ZFXY_1M_ZOOM_BASE}.`);
     }
-    var f = Math.floor(((Math.pow(2, input.zoom)) * meters) / (Math.pow(2, ZFXY_1M_ZOOM_BASE)));
+    const f = Math.floor(((2 ** input.zoom) * meters) / (2 ** ZFXY_1M_ZOOM_BASE));
     // Algorithm adapted from tilebelt.js
-    var d2r = Math.PI / 180;
-    var sin = Math.sin(input.lat * d2r);
-    var z2 = Math.pow(2, input.zoom);
-    var x = z2 * (input.lng / 360 + 0.5);
-    var y = z2 * (0.5 - 0.25 * Math.log((1 + sin) / (1 - sin)) / Math.PI);
+    const d2r = Math.PI / 180;
+    const sin = Math.sin(input.lat * d2r);
+    const z2 = 2 ** input.zoom;
+    let x = z2 * (input.lng / 360 + 0.5);
+    const y = z2 * (0.5 - 0.25 * Math.log((1 + sin) / (1 - sin)) / Math.PI);
     // Wrap Tile X
     x = x % z2;
     if (x < 0)
@@ -179,37 +114,26 @@ function calculateZFXY(input) {
  * for the f coordinate: limiting to maximum or minimum.
  */
 function zfxyWraparound(tile) {
-    var z = tile.z, f = tile.f, x = tile.x, y = tile.y;
+    const { z, f, x, y } = tile;
     return {
-        z: z,
-        f: Math.max(Math.min(f, (Math.pow(2, z))), -(Math.pow(2, z))),
-        x: (x < 0) ? x + Math.pow(2, z) : x % Math.pow(2, z),
-        y: (y < 0) ? y + Math.pow(2, z) : y % Math.pow(2, z),
+        z,
+        f: Math.max(Math.min(f, (2 ** z)), -(2 ** z)),
+        x: (x < 0) ? x + 2 ** z : x % 2 ** z,
+        y: (y < 0) ? y + 2 ** z : y % 2 ** z,
     };
 }
 
 function parseZFXYTilehash(th) {
-    var e_1, _a;
-    var negativeF = false;
+    let negativeF = false;
     if (th[0] === '-') {
         negativeF = true;
         th = th.substring(1);
     }
-    var children = getChildren();
-    var lastChild;
-    try {
-        for (var th_1 = __values(th), th_1_1 = th_1.next(); !th_1_1.done; th_1_1 = th_1.next()) {
-            var c = th_1_1.value;
-            lastChild = __assign({}, children[parseInt(c, 10) - 1]);
-            children = getChildren(lastChild);
-        }
-    }
-    catch (e_1_1) { e_1 = { error: e_1_1 }; }
-    finally {
-        try {
-            if (th_1_1 && !th_1_1.done && (_a = th_1.return)) _a.call(th_1);
-        }
-        finally { if (e_1) throw e_1.error; }
+    let children = getChildren();
+    let lastChild;
+    for (const c of th) {
+        lastChild = { ...children[parseInt(c, 10) - 1] };
+        children = getChildren(lastChild);
     }
     if (negativeF) {
         lastChild.f = -lastChild.f;
@@ -217,19 +141,19 @@ function parseZFXYTilehash(th) {
     return lastChild;
 }
 function generateTilehash(tile) {
-    var f = tile.f, x = tile.x, y = tile.y, z = tile.z;
-    var originalF = f;
-    var out = '';
+    let { f, x, y, z } = tile;
+    const originalF = f;
+    let out = '';
     while (z > 0) {
-        var thisTile = { f: Math.abs(f), x: x, y: y, z: z };
-        var parent_1 = getParent(thisTile);
-        var childrenOfParent = getChildren(parent_1);
-        var positionInParent = childrenOfParent.findIndex(function (child) { return child.f === Math.abs(f) && child.x === x && child.y === y && child.z === z; });
+        const thisTile = { f: Math.abs(f), x: x, y: y, z: z };
+        const parent = getParent(thisTile);
+        const childrenOfParent = getChildren(parent);
+        const positionInParent = childrenOfParent.findIndex((child) => child.f === Math.abs(f) && child.x === x && child.y === y && child.z === z);
         out = (positionInParent + 1).toString() + out;
-        f = parent_1.f;
-        x = parent_1.x;
-        y = parent_1.y;
-        z = parent_1.z;
+        f = parent.f;
+        x = parent.x;
+        y = parent.y;
+        z = parent.z;
     }
     return (originalF < 0 ? '-' : '') + out;
 }
@@ -4523,10 +4447,10 @@ function booleanIntersects(feature1, feature2) {
     return bool;
 }
 
-var d2r = Math.PI / 180, MAX_ZOOM = 28;
+const d2r = Math.PI / 180, MAX_ZOOM = 28;
 function getBboxZoom(bbox) {
-    for (var z = 0; z < MAX_ZOOM; z++) {
-        var mask = 1 << (32 - (z + 1));
+    for (let z = 0; z < MAX_ZOOM; z++) {
+        const mask = 1 << (32 - (z + 1));
         if (((bbox[0] & mask) !== (bbox[2] & mask)) ||
             ((bbox[1] & mask) !== (bbox[3] & mask))) {
             return z;
@@ -4538,14 +4462,14 @@ function getBboxZoom(bbox) {
  * Get the smallest tile to cover a bbox
  */
 function bboxToTile(bboxCoords, minZoom) {
-    var min = pointToTile(bboxCoords[0], bboxCoords[1], 32);
-    var max = pointToTile(bboxCoords[2], bboxCoords[3], 32);
-    var bbox = [min[0], min[1], max[0], max[1]];
-    var z = Math.min(getBboxZoom(bbox), typeof minZoom !== 'undefined' ? minZoom : MAX_ZOOM);
+    const min = pointToTile(bboxCoords[0], bboxCoords[1], 32);
+    const max = pointToTile(bboxCoords[2], bboxCoords[3], 32);
+    const bbox = [min[0], min[1], max[0], max[1]];
+    const z = Math.min(getBboxZoom(bbox), typeof minZoom !== 'undefined' ? minZoom : MAX_ZOOM);
     if (z === 0)
         return [0, 0, 0];
-    var x = bbox[0] >>> (32 - z);
-    var y = bbox[1] >>> (32 - z);
+    const x = bbox[0] >>> (32 - z);
+    const y = bbox[1] >>> (32 - z);
     return [x, y, z];
 }
 /**
@@ -4569,24 +4493,145 @@ function pointToTileFraction(lon, lat, z) {
     return [x, y, z];
 }
 
-var DEFAULT_ZOOM = 25;
-var Space = /** @class */ (function () {
+// Function 1: Encode (x,y,z) to Hilbert curve index
+function encodeHilbert3D(x, y, z, bits) {
+    let morton = encodeMorton3D(x, y, z);
+    return mortonToHilbertN(morton, bits);
+}
+// Function 2: Decode Hilbert curve index to (x,y,z)
+function decodeHilbert3D(index, bits) {
+    const morton = hilbertToMortonN(index, bits);
+    return decodeMorton3D(morton);
+}
+// Helper functions: Encode/decode Morton curve using magic bits
+// This is a 3D Morton curve implementation, adapted from https://stackoverflow.com/questions/1024754/how-to-compute-a-3d-morton-number-interleave-the-bits-of-3-ints
+function encodeMorton3D(x, y, z) {
+    let morton = 0n;
+    morton = splitBy3(x) | (splitBy3(y) << 1n) | (splitBy3(z) << 2n);
+    return morton;
+}
+function decodeMorton3D(morton) {
+    let x = compactBy3(morton);
+    let y = compactBy3(morton >> 1n);
+    let z = compactBy3(morton >> 2n);
+    return [x, y, z];
+}
+function splitBy3(a) {
+    let x = BigInt(a) & BigInt('0x3ffffffffff');
+    x = (x | x << 64n) & BigInt('0x3ff0000000000000000ffffffff');
+    x = (x | x << 32n) & BigInt('0x3ff00000000ffff00000000ffff');
+    x = (x | x << 16n) & BigInt('0x30000ff0000ff0000ff0000ff0000ff');
+    x = (x | x << 8n) & BigInt('0x300f00f00f00f00f00f00f00f00f00f');
+    x = (x | x << 4n) & BigInt('0x30c30c30c30c30c30c30c30c30c30c3');
+    x = (x | x << 2n) & BigInt('0x9249249249249249249249249249249');
+    return x;
+}
+function compactBy3(a) {
+    let x = a & BigInt('0x9249249249249249249249249249249');
+    x = (x | x >> 2n) & BigInt('0x30c30c30c30c30c30c30c30c30c30c3');
+    x = (x | x >> 4n) & BigInt('0x300f00f00f00f00f00f00f00f00f00f');
+    x = (x | x >> 8n) & BigInt('0x30000ff0000ff0000ff0000ff0000ff');
+    x = (x | x >> 16n) & BigInt('0x3ff00000000ffff00000000ffff');
+    x = (x | x >> 32n) & BigInt('0x3ff0000000000000000ffffffff');
+    x = (x | x >> 64n) & BigInt('0x3ffffffffff');
+    return Number(x);
+}
+// Helper functions: Translate morton/hilbert codes using a simple lookup table
+// This code has been adapted from http://threadlocalmutex.com/?p=149
+const mortonToHilbertTable = [
+    48, 33, 27, 34, 47, 78, 28, 77,
+    66, 29, 51, 52, 65, 30, 72, 63,
+    76, 95, 75, 24, 53, 54, 82, 81,
+    18, 3, 17, 80, 61, 4, 62, 15,
+    0, 59, 71, 60, 49, 50, 86, 85,
+    84, 83, 5, 90, 79, 56, 6, 89,
+    32, 23, 1, 94, 11, 12, 2, 93,
+    42, 41, 13, 14, 35, 88, 36, 31,
+    92, 37, 87, 38, 91, 74, 8, 73,
+    46, 45, 9, 10, 7, 20, 64, 19,
+    70, 25, 39, 16, 69, 26, 44, 43,
+    22, 55, 21, 68, 57, 40, 58, 67,
+];
+const hilbertToMortonTable = [
+    48, 33, 35, 26, 30, 79, 77, 44,
+    78, 68, 64, 50, 51, 25, 29, 63,
+    27, 87, 86, 74, 72, 52, 53, 89,
+    83, 18, 16, 1, 5, 60, 62, 15,
+    0, 52, 53, 57, 59, 87, 86, 66,
+    61, 95, 91, 81, 80, 2, 6, 76,
+    32, 2, 6, 12, 13, 95, 91, 17,
+    93, 41, 40, 36, 38, 10, 11, 31,
+    14, 79, 77, 92, 88, 33, 35, 82,
+    70, 10, 11, 23, 21, 41, 40, 4,
+    19, 25, 29, 47, 46, 68, 64, 34,
+    45, 60, 62, 71, 67, 18, 16, 49,
+];
+function transformCurve(inValue, bits, lookupTable) {
+    let transform = 0;
+    let out = 0n;
+    for (let i = 3 * (bits - 1); i >= 0; i -= 3) {
+        transform = lookupTable[transform | Number((inValue >> BigInt(i)) & 7n)];
+        out = (out << 3n) | BigInt(transform & 7);
+        transform &= ~7;
+    }
+    return out;
+}
+function mortonToHilbertN(mortonIndex, bits) {
+    return transformCurve(mortonIndex, bits, mortonToHilbertTable);
+}
+function hilbertToMortonN(hilbertIndex, bits) {
+    return transformCurve(hilbertIndex, bits, hilbertToMortonTable);
+}
+
+// Functions to encode/decode 3D xyz coordinates to/from a Hilbert distance
+function generateHilbertIndex(tile) {
+    // normalize the f attribute to be positive
+    // this allows negative f values to be encoded in the hilbert index
+    const f = tile.z > 0 ? tile.f + (2 ** (tile.z - 1)) : 0;
+    return encodeHilbert3D(tile.x, tile.y, f, tile.z);
+}
+function parseHilbertIndex(hilbertDistance, z) {
+    if (z === 0) {
+        return { z: 0, f: 0, x: 0, y: 0 };
+    }
+    const [x, y, originalF] = decodeHilbert3D(hilbertDistance, z);
+    // denormalize the f attribute
+    const f = originalF - (2 ** (z - 1));
+    return { f, x, y, z };
+}
+function generateHilbertTilehash(hilbertIndex, order) {
+    // radix 8 compresses 3 bits into 1 character (0-7)
+    // we want 1-8, so we add 1 to each digit of the string
+    return 'H' + hilbertIndex.toString(8).padStart(order, '0').split('').map((c) => (parseInt(c) + 1).toString()).join('');
+}
+function parseHilbertTilehash(th) {
+    if (th[0] !== 'H') {
+        return undefined;
+    }
+    // need to subtract 1 from each digit to convert back to radix 8
+    const thDigits = th.substring(1).split('').map((c) => (parseInt(c) - 1).toString()).join('');
+    const hilbertDistance = BigInt("0o" + thDigits); // thDigits is in radix 8, so we can parse it as an octal
+    return parseHilbertIndex(hilbertDistance, thDigits.length);
+}
+
+const DEFAULT_ZOOM = 25;
+class Space {
     /**
      * Create a new Space
      *
      * @param input A LngLatWithAltitude or string containing either a ZFXY or tilehash-encoded ZFXY.
      * @param zoom Optional. Defaults to 25 when `input` is LngLatWithAltitude. Ignored when ZXFY or tilehash is provided.
      */
-    function Space(input, zoom) {
+    constructor(input, zoom) {
         if (typeof input === 'string') {
             // parse string
-            var zfxy = parseZFXYString(input) || parseZFXYTilehash(input);
+            let zfxy = parseZFXYString(input) || parseHilbertTilehash(input) || parseZFXYTilehash(input);
             if (zfxy) {
                 this.zfxy = zfxy;
                 this._regenerateAttributesFromZFXY();
             }
             else {
-                throw new Error("parse ZFXY failed with input: ".concat(input));
+                throw new Error(`parse ZFXY failed with input: ${input}`);
             }
             return;
         }
@@ -4596,37 +4641,34 @@ var Space = /** @class */ (function () {
             return;
         }
         else {
-            this.zfxy = calculateZFXY(__assign(__assign({}, input), { zoom: (typeof zoom !== 'undefined') ? zoom : DEFAULT_ZOOM }));
+            this.zfxy = calculateZFXY({
+                ...input,
+                zoom: (typeof zoom !== 'undefined') ? zoom : DEFAULT_ZOOM,
+            });
         }
         this._regenerateAttributesFromZFXY();
     }
     /* - PUBLIC API - */
-    Space.prototype.up = function (by) {
-        if (by === void 0) { by = 1; }
+    up(by = 1) {
         return this.move({ f: by });
-    };
-    Space.prototype.down = function (by) {
-        if (by === void 0) { by = 1; }
+    }
+    down(by = 1) {
         return this.move({ f: -by });
-    };
-    Space.prototype.north = function (by) {
-        if (by === void 0) { by = 1; }
+    }
+    north(by = 1) {
         return this.move({ y: by });
-    };
-    Space.prototype.south = function (by) {
-        if (by === void 0) { by = 1; }
+    }
+    south(by = 1) {
         return this.move({ y: -by });
-    };
-    Space.prototype.east = function (by) {
-        if (by === void 0) { by = 1; }
+    }
+    east(by = 1) {
         return this.move({ x: by });
-    };
-    Space.prototype.west = function (by) {
-        if (by === void 0) { by = 1; }
+    }
+    west(by = 1) {
         return this.move({ x: -by });
-    };
-    Space.prototype.move = function (by) {
-        var newSpace = new Space(this.zfxy);
+    }
+    move(by) {
+        const newSpace = new Space(this.zfxy);
         newSpace.zfxy = zfxyWraparound({
             z: newSpace.zfxy.z,
             f: newSpace.zfxy.f + (by.f || 0),
@@ -4635,49 +4677,49 @@ var Space = /** @class */ (function () {
         });
         newSpace._regenerateAttributesFromZFXY();
         return newSpace;
-    };
-    Space.prototype.parent = function (atZoom) {
-        var steps = (typeof atZoom === 'undefined') ? 1 : this.zfxy.z - atZoom;
+    }
+    parent(atZoom) {
+        const steps = (typeof atZoom === 'undefined') ? 1 : this.zfxy.z - atZoom;
         return new Space(getParent(this.zfxy, steps));
-    };
-    Space.prototype.children = function () {
-        return getChildren(this.zfxy).map(function (tile) { return new Space(tile); });
-    };
+    }
+    children() {
+        return getChildren(this.zfxy).map((tile) => new Space(tile));
+    }
     /** Return an array of Space objects at the same zoom level that surround this Space
      * object. This method does not return the Space object itself, so the array will
      * contain 26 Space objects.
      */
-    Space.prototype.surroundings = function () {
-        var _this = this;
-        return __spreadArray(__spreadArray(__spreadArray([], __read((getSurrounding(this.zfxy)
-            .filter(function (_a) {
-            var z = _a.z, f = _a.f, x = _a.x, y = _a.y;
-            return "/".concat(z, "/").concat(f, "/").concat(x, "/").concat(y) !== _this.zfxyStr;
-        })
-            .map(function (tile) { return new Space(tile); }))), false), __read((getSurrounding(this.up().zfxy)
-            .map(function (tile) { return new Space(tile); }))), false), __read((getSurrounding(this.down().zfxy)
-            .map(function (tile) { return new Space(tile); }))), false);
-    };
+    surroundings() {
+        return [
+            ...(getSurrounding(this.zfxy)
+                .filter(({ z, f, x, y }) => `/${z}/${f}/${x}/${y}` !== this.zfxyStr)
+                .map((tile) => new Space(tile))),
+            ...(getSurrounding(this.up().zfxy)
+                .map((tile) => new Space(tile))),
+            ...(getSurrounding(this.down().zfxy)
+                .map((tile) => new Space(tile))),
+        ];
+    }
     /** Returns true if a point lies within this Space. If the position's altitude is not
      * specified, it is ignored from the calculation.
      */
-    Space.prototype.contains = function (position) {
-        var geom = this.toGeoJSON();
-        var point = {
+    contains(position) {
+        const geom = this.toGeoJSON();
+        const point = {
             type: 'Point',
             coordinates: [position.lng, position.lat],
         };
-        var floor = this.alt;
-        var ceil = getFloor(__assign(__assign({}, this.zfxy), { f: this.zfxy.f + 1 }));
+        const floor = this.alt;
+        const ceil = getFloor({ ...this.zfxy, f: this.zfxy.f + 1 });
         return (booleanIntersects(geom, point) &&
             (typeof position.alt !== 'undefined' === true ?
                 position.alt >= floor && position.alt < ceil
                 :
                     true));
-    };
+    }
     /** Calculates the polygon of this Space and returns a 2D GeoJSON Polygon. */
-    Space.prototype.toGeoJSON = function () {
-        var _a = __read(getBBox(this.zfxy), 2), nw = _a[0], se = _a[1];
+    toGeoJSON() {
+        const [nw, se] = getBBox(this.zfxy);
         return {
             type: 'Polygon',
             coordinates: [
@@ -4690,12 +4732,12 @@ var Space = /** @class */ (function () {
                 ],
             ],
         };
-    };
+    }
     /** Calculates the 3D polygon of this Space and returns the vertices of that polygon. */
-    Space.prototype.vertices3d = function () {
-        var _a = __read(getBBox(this.zfxy), 2), nw = _a[0], se = _a[1];
-        var floor = getFloor(this.zfxy);
-        var ceil = getFloor(__assign(__assign({}, this.zfxy), { f: this.zfxy.f + 1 }));
+    vertices3d() {
+        const [nw, se] = getBBox(this.zfxy);
+        const floor = getFloor(this.zfxy);
+        const ceil = getFloor({ ...this.zfxy, f: this.zfxy.f + 1 });
         return [
             [nw.lng, nw.lat, floor],
             [nw.lng, se.lat, floor],
@@ -4706,27 +4748,27 @@ var Space = /** @class */ (function () {
             [se.lng, se.lat, ceil],
             [se.lng, nw.lat, ceil],
         ];
-    };
-    Space.getSpaceById = function (id, zoom) {
+    }
+    static getSpaceById(id, zoom) {
         return new Space(id, zoom);
-    };
-    Space.getSpaceByLocation = function (loc, zoom) {
+    }
+    static getSpaceByLocation(loc, zoom) {
         return new Space(loc, zoom);
-    };
-    Space.getSpaceByZFXY = function (zfxyStr) {
+    }
+    static getSpaceByZFXY(zfxyStr) {
         return new Space(zfxyStr);
-    };
+    }
     /** Calculates the smallest spatial ID to fully contain the polygon. Currently only supports 2D polygons. */
-    Space.boundingSpaceForGeometry = function (geom, minZoom) {
+    static boundingSpaceForGeometry(geom, minZoom) {
         minZoom = minZoom || 25;
-        var bbox = bbox$2(geom);
-        var largestTile = bboxToTile(bbox, minZoom);
-        var _a = __read(largestTile, 3), x = _a[0], y = _a[1], z = _a[2];
-        return new Space({ x: x, y: y, z: z, f: 0 });
-    };
+        const bbox = bbox$2(geom);
+        const largestTile = bboxToTile(bbox, minZoom);
+        const [x, y, z] = largestTile;
+        return new Space({ x, y, z, f: 0 });
+    }
     /** Calculate an array of spaces that make up the polygon. Currently only supports 2D polygons. */
-    Space.spacesForGeometry = function (geom, zoom) {
-        var z = zoom;
+    static spacesForGeometry(geom, zoom) {
+        const z = zoom;
         if (z === 0) {
             // not recommended.
             return [new Space('0/0/0/0')];
@@ -4735,27 +4777,28 @@ var Space = /** @class */ (function () {
             throw new Error('GeometryCollection not supported');
         }
         // this can be optimized a lot!
-        var bbox = bbox$2(geom), min = pointToTile(bbox[0], bbox[1], 32), max = pointToTile(bbox[2], bbox[3], 32), minX = (Math.min(min[0], max[0])) >>> (32 - z), minY = (Math.min(min[1], max[1])) >>> (32 - z), maxX = (Math.max(max[0], min[0]) >>> (32 - z)) + 1, maxY = (Math.max(max[1], min[1]) >>> (32 - z)) + 1, spaces = [];
+        const bbox = bbox$2(geom), min = pointToTile(bbox[0], bbox[1], 32), max = pointToTile(bbox[2], bbox[3], 32), minX = (Math.min(min[0], max[0])) >>> (32 - z), minY = (Math.min(min[1], max[1])) >>> (32 - z), maxX = (Math.max(max[0], min[0]) >>> (32 - z)) + 1, maxY = (Math.max(max[1], min[1]) >>> (32 - z)) + 1, spaces = [];
         // scanline polygon fill algorithm
-        for (var x = minX; x <= maxX; x++) {
-            for (var y = minY; y <= maxY; y++) {
-                var space = new Space({ x: x, y: y, z: z, f: 0 });
+        for (let x = minX; x <= maxX; x++) {
+            for (let y = minY; y <= maxY; y++) {
+                const space = new Space({ x, y, z, f: 0 });
                 if (booleanIntersects(geom, space.toGeoJSON())) {
                     spaces.push(space);
                 }
             }
         }
         return spaces;
-    };
-    Space.prototype._regenerateAttributesFromZFXY = function () {
+    }
+    _regenerateAttributesFromZFXY() {
         this.alt = getFloor(this.zfxy);
         this.center = getCenterLngLatAlt(this.zfxy);
         this.zoom = this.zfxy.z;
         this.id = this.tilehash = generateTilehash(this.zfxy);
-        this.zfxyStr = "/".concat(this.zfxy.z, "/").concat(this.zfxy.f, "/").concat(this.zfxy.x, "/").concat(this.zfxy.y);
-    };
-    return Space;
-}());
+        this.zfxyStr = `/${this.zfxy.z}/${this.zfxy.f}/${this.zfxy.x}/${this.zfxy.y}`;
+        this.hilbertIndex = generateHilbertIndex(this.zfxy);
+        this.hilbertTilehash = generateHilbertTilehash(this.hilbertIndex, this.zfxy.z);
+    }
+}
 
 export { Space };
 //# sourceMappingURL=index.es.js.map
